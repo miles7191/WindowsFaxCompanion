@@ -36,7 +36,8 @@ public class WFCConfig extends YamlConfig{
 	@Comment("Name used to identify this client")
 	private @Getter @Setter String clientName = "";
 	private @Getter @Setter String emailTemplate = "<html><head><style>body{background-color:#A8B7BD;margin:0;}h1{background-color:#35546E;color:#D4E6ED;margin:0;padding:10;font-family:Tahoma,sans-serif;}h2{font-size:100px;margin:0;}h3{font-family:Tahoma,sans-serif;}div{padding:20;}</style><h1><center>Windows Fax Companion</center></h1></head><body><div><h2><center>&#x2709;</center></h2><hr><h3><center>New Fax Recieved From<br>{CLIENTNAME}<br>{FILENAME}</center></h3></div></body></html>";
-	
+	@Comment("Internal value used to track fax progress.")
+	private @Getter @Setter long internalLastSent = 0;
 	public WFCConfig() {
 		CONFIG_HEADER = new String[]{"Windows Fax Companion Configuration Data"};
 		CONFIG_FILE = new File("config.yml");

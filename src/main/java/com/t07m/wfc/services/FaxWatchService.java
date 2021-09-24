@@ -20,23 +20,32 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.t07m.application.Service;
 import com.t07m.wfc.WindowsFaxCompanion;
 
 public class FaxWatchService extends Service<WindowsFaxCompanion>{
 
+	private static final Logger logger = LoggerFactory.getLogger(FaxWatchService.class);
+	
 	public FaxWatchService(WindowsFaxCompanion app) {
 		super(app, TimeUnit.SECONDS.toMillis(10));
 	}
 
 	public void process() {
-		try {
-			Files.list(Paths.get(getApp().getConfig().getWatchFolder()))
-			.filter(path -> path.toString().toLowerCase().endsWith(".tif"))
-			.forEach(path -> getApp().getFaxTracker().submitFile(path.toFile(), getApp()));
+		synchronized(this.getApp().getConfig()) {
+			logger.debug("Scanning for new .tif files.");
+			long lastSent = this.getApp().getConfig().getInternalLastSent();
+			try {
+				Files.list(Paths.get(getApp().getConfig().getWatchFolder()))
+				.filter(path -> (path.toString().toLowerCase().endsWith(".tif") && path.toFile().lastModified() > lastSent))
+				.forEach(path -> getApp().getFaxTracker().submitFile(path.toFile(), getApp()));
 
-		} catch (IOException e) {
-			e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 }

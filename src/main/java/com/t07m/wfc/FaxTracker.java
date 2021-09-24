@@ -22,12 +22,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FaxTracker {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(FaxTracker.class);
 
 	private ArrayList<FaxJob> jobs = new ArrayList<FaxJob>();
 
 	public void submitFile(File file, WindowsFaxCompanion app) {
+		logger.debug("Checking file - " + file.getName());
 		try {
 			file.renameTo(file);
 			if(!file.canWrite()) {
@@ -40,10 +41,8 @@ public class FaxTracker {
 			if(job.getTiff().equals(file.getPath()))
 				return;
 		}
-		if(!app.getFaxLogHandler().contains(file.getPath())) {
-			logger.info("New FaxJob Found - " + file.getName());
-			jobs.add(new FaxJob(file.getPath(), app));
-		}
+		logger.info("New FaxJob Found - " + file.getName());
+		jobs.add(new FaxJob(file.getPath(), app));
 	}
 
 	public FaxJob[] getJobs() {

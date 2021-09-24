@@ -51,7 +51,6 @@ public class WindowsFaxCompanion extends Application{
 	private @Getter WFCConfig config;
 	
 	private @Getter FaxTracker faxTracker;
-	private @Getter FaxLogHandler faxLogHandler;
 	private @Getter EmailHandler emailHandler;
 	
 	public void init() {
@@ -69,7 +68,6 @@ public class WindowsFaxCompanion extends Application{
 		}
 		logger.info("Launching Application.");
 		faxTracker = new FaxTracker();
-		faxLogHandler = new FaxLogHandler();
 		emailHandler = new EmailHandler(new GmailClient(config.getEmailUser(), config.getEmailPassword()), config);
 		this.registerService(new FaxWatchService(this));
 		this.registerService(new FaxJobService(this));

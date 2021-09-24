@@ -38,6 +38,8 @@ public class FaxJob implements Runnable{
 	@ToString.Exclude
 	private final WindowsFaxCompanion app;
 
+	private @Getter long tiffTime = 0;
+	
 	private @Getter String tiff;
 	private @Getter @Setter String pdf;
 
@@ -55,7 +57,9 @@ public class FaxJob implements Runnable{
 	public FaxJob(String tiff, WindowsFaxCompanion app) {
 		this.tiff = tiff;
 		this.app = app;
-		name = new File(tiff).getName();
+		File tf = new File(tiff);
+		name = tf.getName();
+		tiffTime = tf.lastModified();
 	}
 
 	public void run() {
@@ -68,6 +72,7 @@ public class FaxJob implements Runnable{
 				emailed = emailRecipients();
 			if(emailed && cleanup()) {
 				complete = true;
+				running = false;
 				logger.info("FaxJob Completed Successfully - " + name);
 				return;
 			}
@@ -114,9 +119,6 @@ public class FaxJob implements Runnable{
 		logger.debug("Attempting to cleanup " + name);
 		try {
 			Files.delete(Path.of(pdf));
-		} catch (IOException e) {}
-		try {
-			Files.delete(Path.of(tiff));
 		} catch (IOException e) {
 			return false;
 		}

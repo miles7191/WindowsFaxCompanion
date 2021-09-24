@@ -26,16 +26,18 @@ import com.t07m.application.Service;
 import com.t07m.wfc.FaxJob;
 import com.t07m.wfc.WindowsFaxCompanion;
 
+import net.cubespace.Yamler.Config.InvalidConfigurationException;
+
 public class FaxJobService extends Service<WindowsFaxCompanion>{
 
 	private static final Logger logger = LoggerFactory.getLogger(FaxJobService.class);
-	
+
 	private ExecutorService es = Executors.newFixedThreadPool(2);
-	
+
 	public FaxJobService(WindowsFaxCompanion app) {
 		super(app, TimeUnit.SECONDS.toMillis(5));
 	}
-	
+
 	public void process() {
 		for(FaxJob job : getApp().getFaxTracker().getJobs()) {
 			if(!job.isSubmitted()) {
@@ -45,13 +47,23 @@ public class FaxJobService extends Service<WindowsFaxCompanion>{
 				continue;
 			}
 			if(!job.isRunning() && job.getAttempt() > 0) {
-				logger.warn("Unable to delete .tif file. Adding to FaxLog.");
-				getApp().getFaxLogHandler().add(job);
+				if(job.isComplete()) {
+					synchronized(this.getApp().getConfig()) {
+						if(getApp().getConfig().getInternalLastSent() < job.getTiffTime()) {
+							getApp().getConfig().setInternalLastSent(job.getTiffTime());
+							try {
+								getApp().getConfig().save();
+							} catch (InvalidConfigurationException e) {
+								e.printStackTrace();
+							}
+						}
+					}
+				}
 				getApp().getFaxTracker().removeJob(job);
 			}
 		}
 	}
-	
+
 	public void cleanup() {
 		es.shutdown();
 	}
